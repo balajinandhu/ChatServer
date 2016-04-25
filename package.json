@@ -1,0 +1,13 @@
+{
+    "name": "chat_server"
+  , "description": "Our first TCP server"
+  , "version": "0.0.1",
+  "dependencies": {
+        "express": "2.4.6",
+        "socket.io": "0.8.4",
+        "node-sort": ">= 0.2.0",
+        "underscore": "~1.5.2",
+        "node-uuid": "~1.4.1"
+     }
+
+}
