@@ -1,0 +1,25 @@
+{
+  "name": "chat_server",
+  "description": "\"Node.js Chat Server for Weeby Engineer Task\"",
+  "main": "server.js",
+  "authors": [
+    "Balaji Narayanaswami <balajinandhu@gmail.com>"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "chat",
+    "room"
+  ],
+  "homepage": "https://github.com/balajinandhu/ChatServer",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "jquery": "^2.2.3"
+  }
+}

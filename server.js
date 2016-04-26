@@ -9,8 +9,6 @@ _ = require('underscore')._;
 
 var count = 0, users = {};
 var listenPort = 3000;
-var Sort = require('node-sort'),  // To sort array
-  sort = new Sort();
 var rooms = {};
 /**
  * Create server.
@@ -43,7 +41,7 @@ var server = net.createServer(function (conn) {
     }
   };
   function RemoveBackspaces(str)
-  {
+  {   str = str.replace(/[.,\r\n]/g, '');
       while (str.indexOf("\b") != -1||str.indexOf("\t") != -1)
       {
           str = str.replace(/.?\x08/, ""); // 0x08 is the ASCII code for \b
@@ -55,38 +53,38 @@ var server = net.createServer(function (conn) {
   var ownerRoomID = inRoomID = null;
   var self = this;
   conn.on('data', function (data) {
-    // we remove the "enter" character
-    if( (data==='\r\n') || (data==='\n') ){
       
       // the first piece of data we expect is the nickname
-      //var temp = this.buf;
-      var temp = RemoveBackspaces(this.buf);
-      console.log(temp.split(""));
+      var temp = RemoveBackspaces(data);
       if (!nickname) {
-        //temp = this.buf.valueOf().split("");
-        
-        //console.log(temp.split(""));
-        
-        if (users[temp]) {
-          conn.write('\n\r\033[93m > Sorry, name taken.\033[39m');
+        if(temp !== "")
+        {
+          if (users[temp]) {
+            conn.write('\n\r\033[93m > Sorry, name taken.\033[39m');
+            conn.write('\n\r\033[93m > Login name and press enter:\033[39m')
+            this.buf = '';
+            return;
+          } else {
+            nickname = temp;
+            users[nickname] = {"port": conn, "owns" : ownerRoomID, "inroom": inRoomID};//conn;
+            conn.write("   Welcome "+nickname+'!\n\r');
+            conn.write("   Type /help for commands!\n\r");
+            broadcast('\n\r\033[90m > ' + nickname + ' joined the room\033[39m\n\r');
+          }
+        } else {
+          conn.write('\n\r\033[93m > Sorry, Please enter some login name.\033[39m');
           conn.write('\n\r\033[93m > Login name and press enter:\033[39m')
           this.buf = '';
           return;
-        } else {
-         // conn.write("this.buf = "+this.buf+"\n");
-          nickname = temp;
-          users[nickname] = {"port": conn, "owns" : ownerRoomID, "inroom": inRoomID};//conn;
-          conn.write("   Welcome "+nickname+'!\n\r');
-          conn.write("   Type /help for commands!\n\r");
-          //broadcast('\n\r\033[90m > ' + nickname + ' joined the room\033[39m\n\r');
         }
-      } else if (firstWord(temp) === '/rooms') {
+      }
+    if (firstWord(temp) == '/rooms') {
       listRooms(nickname);
     // To list all rooms by "/rooms" command
-    } else if (firstWord(temp) === '/join') {
+    } else if (firstWord(temp) == '/join') {
       joinRoom(temp, nickname);
     // To join a room by "/join" command
-    } else if (firstWord(temp) === '/help') {
+    } else if (firstWord(temp) == "/help") {
       conn.write('\n\r\033[93m /listusers \n\r /rooms \n\r /countusers \n\r /pm <name> <msg> \n\r /join <roomname> \n\r /leave <roomname> \n\r /help \n\r /quit \033[39m\n\r');
       conn.write(' end of list.\n\r');
     // To list all commands
@@ -110,17 +108,8 @@ var server = net.createServer(function (conn) {
         if(users[nickname].inroom!==null)
           broadcast(users[nickname].inroom, nickname + ':\033[39m ' + temp + '\n\r', true);
       }
-      this.buf = '';
       temp = '';
       conn.write('\n\r\033[93m > ');
-    }
-    else //No 'enter' character thus concat the data with the buffer.
-      if(this.buf === undefined){
-
-        this.buf = data;
-      } else {
-        this.buf += data;
-      }
     
   });
 
@@ -147,7 +136,7 @@ var server = net.createServer(function (conn) {
 // To find the first word from a sentence
   function firstWord (data) {
     var f = [];
-    data = data.replace(/[.,]/g, '');
+    data = data.replace(/[.,\r\n]/g, '');
     f = data.split(' ');
     console.log(f[0]);
     return f[0];
