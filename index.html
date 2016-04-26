@@ -1,44 +1,117 @@
-<!DOCTYPE HTML>
+<!DOCTYPE html>
 <html>
-<head>
-<meta charset="utf-8">
-<title>Chat example</title>
-<script>
-var connection
-window.addEventListener("load", function () {
-	var nickname = prompt("Choose a nickname")
-	if (nickname) {
-		connection = new WebSocket("ws://"+window.location.hostname+":8081")
-		connection.onopen = function () {
-			console.log("Connection opened")
-			connection.send(nickname)
-			document.getElementById("form").onsubmit = function (event) {
-				var msg = document.getElementById("msg")
-				if (msg.value)
-					connection.send(msg.value)
-				msg.value = ""
-				event.preventDefault()
-			}	
-		}
-		connection.onclose = function () {
-			console.log("Connection closed")
-		}
-		connection.onerror = function () {
-			console.error("Connection error")
-		}
-		connection.onmessage = function (event) {
-			var div = document.createElement("div")
-			div.textContent = event.data
-			document.body.appendChild(div)
-		}
-	}
-})
-</script>
-</head>
+    <head>
+        <meta charset="utf-8">
+        <title>WebSockets - Simple chat</title>
 
-<body>
-<form id="form">
-Message: <input size="50" id="msg"> <input type="submit" value="Submit">
-</form>
-</body>
+        <style>
+        * { font-family:tahoma; font-size:12px; padding:0px; margin:0px; }
+        p { line-height:18px; }
+        div { width:500px; margin-left:auto; margin-right:auto;}
+        body { background-color: #A9CAD4;}
+        #content { padding:5px; background:#ddd; border-radius:5px; overflow-y: scroll;
+                   border:5px solid #CCC; margin-top:10px; height: 360px; width: 500px; }
+        #input { border-radius:2px; border:1px solid #ccc;
+                 margin-top:10px; padding:5px; width:400px;  }
+        #status { width:88px; display:block; float:left; margin-top:15px; }
+        #formDiv {position: fixed; top: 20%; right: 35%; }
+        #msg {display: inline; width: 70%; padding: 10px 16px; border-radius: 6px;}
+        .btn{ padding: 10px 16px; padding-left: 8px; height: 46px; }
+        </style>
+        <script src="http://localhost:8000/socket.io/socket.io.js"></script>
+<script>
+var connection;
+//var socket = new io.Socket("localhost", {port: 8000});
+var socket = io.connect("http://localhost:8000");
+window.addEventListener("load", function () {
+   var nickname;
+    
+    
+        
+    socket.on('httpServer', function (data) {
+        //var ab = prompt(firstWord(data));
+        if(firstWord(data)==='welcome'||firstWord(data)!=='Sorry'){
+            console.log(data);
+            var div = document.createElement("div");
+            div.style["white-space"] = "pre";
+            //var span = document.createElement("span");
+            div.innerHTML = data.replace(/\\n\\r/g,'<br />');
+            //div.appendChild(span);
+            var objDiv = document.getElementById("content");
+            objDiv.appendChild(div);
+            objDiv.scrollTop = objDiv.scrollHeight;
+        }
+    if (!nickname) {
+        nickname = promtFunc();
+        socket.emit('tcp', nickname);
+        return;
+    }   
+        console.log("first:"+firstWord(data));
+        console.log("data:"+ data);
+          if(firstWord(data)==='Sorry'){
+                //prompt(data);
+                    nickname = promtFunc();
+                    if (nickname) {
+                        socket.emit('tcp', nickname);
+                        return;
+                    }
+            }
+          
+          });   
+        
+
+        /*  console.log("Connection opened")
+            connection.send(nickname)*/
+            document.getElementById("form").onsubmit = function (event) {
+                var msg = document.getElementById("msg")
+                if (msg.value)
+                    socket.emit('tcp', msg.value);
+                    //connection.send(msg.value)
+                msg.value = ""
+                event.preventDefault()
+            }   
+        
+        /*connection.onclose = function () {
+            console.log("Connection closed")
+        }
+        connection.onerror = function () {
+            console.error("Connection error")
+        }
+        connection.onmessage = function (event) {
+            var div = document.createElement("div")
+            div.textContent = event.data
+            document.body.appendChild(div)
+        }
+    }*/
+});
+
+// To find the first word from a sentence
+  var firstWord = function (data) {
+    var f = [];
+    var temp = data;
+    temp = temp.replace(/[.,\n\r]/g, '');
+    f = temp.split(' ');
+    console.log("firstWord:"+f[2]);
+    return f[2];
+  }
+
+ var promtFunc = function(){
+        return prompt("Choose a nickname");
+}
+
+  
+</script>
+    </head>
+    <body>
+        <div id="formDiv">
+        <form id="form">
+            <div id="content" style='overflow:scroll;overflow-x:hidden;'></div>
+            <div>
+                
+                <input type="text" id="msg" />
+                <input type="submit" class ="btn" value="Submit">
+            </div>
+        </form>
+    </div>
+    </body>
 </html>

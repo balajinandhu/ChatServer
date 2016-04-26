@@ -18,7 +18,7 @@ var rooms = {};
 var server = net.createServer(function (conn) {
   
   conn.write(
-      '\n\r > welcome to \033[92m Weeby Chat Server\033[39m!'
+      '\n\r > welcome to Weeby Chat Server!'
     + '\n\r > Login name and press enter: '
   );
 
@@ -36,7 +36,7 @@ var server = net.createServer(function (conn) {
       console.log(users[i].inroom+" "+roomID);
       if (users[i].inroom===roomID&&(!exceptMyself || i != nickname)) {
         users[i].port.write(msg);
-        users[i].port.write('\n\r\033[93m > ');
+        users[i].port.write('\n\r > ');
       }
     }
   };
@@ -56,12 +56,13 @@ var server = net.createServer(function (conn) {
       
       // the first piece of data we expect is the nickname
       var temp = RemoveBackspaces(data);
+      console.log(temp.split(""));
       if (!nickname) {
         if(temp !== "")
         {
           if (users[temp]) {
-            conn.write('\n\r\033[93m > Sorry, name taken.\033[39m');
-            conn.write('\n\r\033[93m > Login name and press enter:\033[39m')
+            conn.write('\n\r > Sorry, name taken.');
+            conn.write('\n\r > Login name and press enter:')
             this.buf = '';
             return;
           } else {
@@ -69,11 +70,11 @@ var server = net.createServer(function (conn) {
             users[nickname] = {"port": conn, "owns" : ownerRoomID, "inroom": inRoomID};//conn;
             conn.write("   Welcome "+nickname+'!\n\r');
             conn.write("   Type /help for commands!\n\r");
-            broadcast('\n\r\033[90m > ' + nickname + ' joined the room\033[39m\n\r');
+            broadcast('\n\r > ' + nickname + ' joined the room\n\r');
           }
         } else {
-          conn.write('\n\r\033[93m > Sorry, Please enter some login name.\033[39m');
-          conn.write('\n\r\033[93m > Login name and press enter:\033[39m')
+          conn.write('\n\r > Sorry, Please enter some login name.');
+          conn.write('\n\r > Login name and press enter:')
           this.buf = '';
           return;
         }
@@ -85,7 +86,7 @@ var server = net.createServer(function (conn) {
       joinRoom(temp, nickname);
     // To join a room by "/join" command
     } else if (firstWord(temp) == "/help") {
-      conn.write('\n\r\033[93m /listusers \n\r /rooms \n\r /countusers \n\r /pm <name> <msg> \n\r /join <roomname> \n\r /leave <roomname> \n\r /help \n\r /quit \033[39m\n\r');
+      conn.write('\n\r /listusers \n\r /rooms \n\r /countusers \n\r /pm #name #msg \n\r /join #roomname \n\r /leave #roomname \n\r /help \n\r /quit \n\r');
       conn.write(' end of list.\n\r');
     // To list all commands
     } else if (firstWord(temp) === '/listusers') {
@@ -106,10 +107,10 @@ var server = net.createServer(function (conn) {
     } else {
         // otherwise we consider it a chat message if part of a room
         if(users[nickname].inroom!==null)
-          broadcast(users[nickname].inroom, nickname + ':\033[39m ' + temp + '\n\r', true);
+          broadcast(users[nickname].inroom, nickname + ': ' + temp + '\n\r', true);
       }
       temp = '';
-      conn.write('\n\r\033[93m > ');
+      conn.write('\n\r > '); 
     
   });
 
@@ -130,7 +131,7 @@ var server = net.createServer(function (conn) {
     for (var i in users) {
       j++;
     }
-    users[nickname].port.write('\n\r\033[93m ' + j + ' users online\033[39m\n\r');
+    users[nickname].port.write('\n\r ' + j + ' users online\n\r');
   }
 
 // To find the first word from a sentence
@@ -152,11 +153,11 @@ var server = net.createServer(function (conn) {
     //var result = s.splice(2).join(' ');
     console.log(result);
     if (nickname === t) {
-      users[nickname].port.write('\n\r\033[93m > You PM yourself!\033[39m\n\r');
+      users[nickname].port.write('\n\r > You PM yourself!\n\r');
     } else if (validUser(t) === 1) {
-      users[t].port.write('\n\r\033[92m > ' + nickname + ' (PM): ' + result + '\033[39m\n\r');
+      users[t].port.write('\n\ > ' + nickname + ' (PM): ' + result + '\n\r');
     } else {
-      users[nickname].port.write('\n\r\033[93m > ' + t + ' is gone!\033[39m\n\r');
+      users[nickname].port.write('\n\r > ' + t + ' is gone!\n\r');
     }
   }
 
@@ -243,7 +244,7 @@ var server = net.createServer(function (conn) {
     if(curr_room!==null){
       if(users[nickname].owns === curr_room.id){
         console.log(curr_room.id);
-        broadcast(curr_room.id, nickname + ' left the server. The room is removed and you have been disconnected from it as well.\033[39m\n\r',nickname);
+        broadcast(curr_room.id, nickname + ' left the server. The room is removed and you have been disconnected from it as well.\n\r',nickname);
         for (var i=0; i<curr_room.people.length; i++) {
           users[curr_room.people[i]].inroom = null;
         }
@@ -255,7 +256,7 @@ var server = net.createServer(function (conn) {
         if(existRoom!==null){
           existRoom.people = _.without(existRoom.people, nickname);
           if(users[nickname].owns !== existRoom.id)
-            broadcast(existRoom.id, nickname + ' left the room.\033[39m\n\r',nickname);
+            broadcast(existRoom.id, nickname + ' left the room.\n\r',nickname);
         }
           
         users[nickname].inroom = null;
@@ -272,12 +273,12 @@ var server = net.createServer(function (conn) {
       if(existRoom!==null){
         existRoom.people = _.without(existRoom.people, nickname);
         if(users[nickname].owns !== existRoom.id)
-          broadcast(existRoom.id, nickname + ' left the room\033[39m\n\r',nickname);
+          broadcast(existRoom.id, nickname + ' left the room\n\r',nickname);
       }
     }
     if(users[nickname].owns!==null){
       var curr_room = _.findWhere(rooms, {'id': users[nickname].owns});
-      broadcast(curr_room.id, nickname + ' left the server. The room is removed and you have been disconnected from it as well.\033[39m\n\r',nickname);
+      broadcast(curr_room.id, nickname + ' left the server. The room is removed and you have been disconnected from it as well.\n\r',nickname);
       for (var i=0; i<curr_room.people.length; i++) {
         users[room.people[i]].inroom = null;
       }
@@ -295,7 +296,7 @@ var server = net.createServer(function (conn) {
     count--;
     if(users[nickname]!=undefined){
        users[nickname].port.write(" BYE");
-    broadcast(users[nickname].inroom, nickname + ' left the room\033[39m\n\r',nickname);
+    broadcast(users[nickname].inroom, nickname + ' left the room\n\r',nickname);
     delete users[nickname];
     }
   });
@@ -303,5 +304,5 @@ var server = net.createServer(function (conn) {
 
 
 server.listen(3000, function () {
-  console.log('\033[96m   server listening on *:3000\033[39m');
+  console.log('\033[96m   server listening on *:3000');
 });

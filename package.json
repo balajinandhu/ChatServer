@@ -3,17 +3,16 @@
   "description": "Our first TCP server",
   "version": "0.0.1",
   "dependencies": {
-    "express": "2.4.6",
     "fs": "0.0.2",
+    "gulp": "^3.9.1",
+    "gulp-nodemon": "^2.0.6",
     "http": "0.0.0",
     "node-sort": ">= 0.2.0",
     "node-uuid": "~1.4.1",
     "nodejs-websocket": "^1.5.0",
-    "optimist": "^0.6.1",
-    "policyfile": "0.0.5",
     "socket.io": "0.8.4",
+    "sticky-session": "^1.0.2",
     "underscore": "~1.5.2",
-    "websockify": "^0.7.1",
     "ws": "^1.1.0"
   }
 }
