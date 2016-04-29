@@ -19,4 +19,4 @@ STEP 5: Start the server by using the command `node server.js`
 STEP 6: Now the Server should be up and running. To create clients, just open a new terminal window, and use
 `telnet localhost 3000`. You can create as many clients as you want users for my chat server.
 
-Also there is a minimalist web client that can simulate the running of the application on a browser. To test it on a browser, start the http server using `node httpserver.js` while keeping the TCP server running as in Step 5. Now, go to localhost:9000 in the browser and you should be able to see the client. The commands to interact are similar to testing on telnet.
+Also there is a minimalist web client that can simulate the running of the application on a browser. To test it on a browser, start the http server using `node httpserver.js` while keeping the TCP server running as in Step 5. Now, go to http://localhost:8000 in the browser and you should be able to see the client. The commands to interact are similar to testing on telnet.
