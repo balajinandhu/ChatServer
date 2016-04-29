@@ -9,7 +9,7 @@ var tcp_HOST = 'localhost';
 var tcp_PORT = 3000;
 
 /**
- * http server
+ * http server - bidirectional proxy server to connect the web client and the tcp server
  */
 function httpHandler (req, res) {
   fs.readFile(__dirname + '/index.html',
@@ -24,7 +24,6 @@ function httpHandler (req, res) {
   });
 }
 
-//http.listen(http_port);
 if (!sticky.listen(http, http_port)) {
     http.once('listening', function() {
         console.info("HTTP server listening on " + http_port);
@@ -35,38 +34,38 @@ if (!sticky.listen(http, http_port)) {
 
 wsock.sockets.on('connection', function (socket) { 
 
-    var tcpClient = new tcpsock.Socket();
+    var tcpClient = new tcpsock.Socket();  // create a socket to the TCP server
     tcpClient.setEncoding("utf8");
     tcpClient.setKeepAlive(true);
 
     tcpClient.connect(tcp_PORT, tcp_HOST, function() {
         console.info('CONNECTED TO : ' + tcp_HOST + ':' + tcp_PORT);
-
+        
+         //pass the data from TCP server to the http handler
         tcpClient.on('data', function(data) {
-            // console.log(data);
-            socket.emit("httpServer", data);
+            socket.emit("httpServer", data); 
         });
 
         tcpClient.on('end', function(data) {
-            console.log(data);
+            console.log(data); 
         });
         tcpClient.on("error", function (err){
-            console.log("Connection closed by TCP server.")
+            console.log("Connection closed by TCP server.");
             //console.log(err.stack)
     });
         
 
     });
-   
+   // handler to pass the data entered by the user on the browser to the TCP server
     socket.on('tcp', function(message) {
-            tcpClient.write(message+"\r\n");
+            tcpClient.write(message+"\r\n"); 
             return;
     });
+    //error handler
     socket.on("error", function (err){
         console.log("Caught server socket error: ")
         console.log(err.stack)
     });
-    //socket.emit("httpServer", "Initial Data");
 });
 
 }
