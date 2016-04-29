@@ -2,7 +2,7 @@ var http = require('http').createServer(httpHandler),
     fs = require("fs"),
     wsock = require('socket.io').listen(http),
     tcpsock = require('net');
-var sticky = require('sticky-session');
+var sticky = require('sticky-session'); //solves the problem of sticky session
 var http_port = 8000;
 
 var tcp_HOST = 'localhost';
