@@ -26,9 +26,9 @@ var server = net.createServer(function (conn) {
 
   // the nickname for the current connection
   var nickname;
-  var buf = null;
+  var buf = null;  //buffer to read characters byte-by-byte -- not needed for MAC OS
 
-  
+  // function to send a message to all other members in the room with an option of excluding the sender
   function broadcast (roomID, msg, exceptMyself) {
    // var room = _.findWhere(rooms, {'name': roomName});
     //console.log(room.id);
@@ -40,6 +40,8 @@ var server = net.createServer(function (conn) {
       }
     }
   };
+  
+  //helper function to remove backspaces -- to provide a smooth experience to allow user to edit the username
   function RemoveBackspaces(str)
   {   str = str.replace(/[.,\r\n]/g, '');
       while (str.indexOf("\b") != -1||str.indexOf("\t") != -1)
@@ -50,24 +52,29 @@ var server = net.createServer(function (conn) {
       }
       return str;
   };
+  
   var ownerRoomID = inRoomID = null;
   var self = this;
+  
+  //event listener on data receiving from terminal
   conn.on('data', function (data) {
       
       // the first piece of data we expect is the nickname
-      var temp = RemoveBackspaces(data);
-      console.log(temp.split(""));
+      var temp = RemoveBackspaces(data); 
+      //console.log(temp.split(""));
       if (!nickname) {
         if(temp !== "")
         {
-          if (users[temp]) {
+          //check if nickname already exists
+          if (users[temp]) {  
             conn.write('\n\r > Sorry, name taken.');
             conn.write('\n\r > Login name and press enter:')
             this.buf = '';
             return;
           } else {
             nickname = temp;
-            users[nickname] = {"port": conn, "owns" : ownerRoomID, "inroom": inRoomID};//conn;
+            users[nickname] = {"port": conn, "owns" : ownerRoomID, "inroom": inRoomID}; // owns refers to the room owned by current user 
+                                                                    //and inrom refers to which room he is currently in
             conn.write("   Welcome "+nickname+'!\n\r');
             conn.write("   Type /help for commands!\n\r");
             broadcast('\n\r > ' + nickname + ' joined the room\n\r');
@@ -79,6 +86,7 @@ var server = net.createServer(function (conn) {
           return;
         }
       }
+      //command based on first word
     if (firstWord(temp) == '/rooms') {
       listRooms(nickname);
     // To list all rooms by "/rooms" command
@@ -222,8 +230,8 @@ var server = net.createServer(function (conn) {
         users[nickname].port.write("You are in a room. Please leave it first to create your own.");
         return;
       }
-      var id = uuid.v4();
-      var room1 = new Room(roomname, id, nickname);
+      var id = uuid.v4(); //global unique identifier for a room
+      var room1 = new Room(roomname, id, nickname); //create a room object
       rooms[id] = room1;
       rooms[id].addPerson(nickname);
       users[nickname].inroom = id;
@@ -239,36 +247,37 @@ var server = net.createServer(function (conn) {
     var s = data.split(' ');
     var roomname = s[1];
     console.log(roomname);
-    var curr_room = _.findWhere(rooms, {'name': roomname});
-    //if user is owner of room
+    var curr_room = _.findWhere(rooms, {'name': roomname});  //query rooms object based on roomname
+    //if user is owner of room and he leaves the room, remove all other members and delete the room
     if(curr_room!==null){
       if(users[nickname].owns === curr_room.id){
         console.log(curr_room.id);
         broadcast(curr_room.id, nickname + ' left the server. The room is removed and you have been disconnected from it as well.\n\r',nickname);
-        for (var i=0; i<curr_room.people.length; i++) {
+        for (var i=0; i<curr_room.people.length; i++) {  //remove room ID from inroom of all members of the current room
           users[curr_room.people[i]].inroom = null;
         }
-        users[nickname].owns = null;
-        delete rooms[curr_room.id];
+        users[nickname].owns = null; //he no longer owns any room
+        delete rooms[curr_room.id]; //remove the room object
       }
       if(users[nickname].inroom === curr_room.id){
-        var existRoom = _.findWhere(rooms, {'id': users[nickname].inroom});
+        var existRoom = _.findWhere(rooms, {'id': users[nickname].inroom}); //query rooms based on id of the current users' room
         if(existRoom!==null){
-          existRoom.people = _.without(existRoom.people, nickname);
-          if(users[nickname].owns !== existRoom.id)
-            broadcast(existRoom.id, nickname + ' left the room.\n\r',nickname);
+          existRoom.people = _.without(existRoom.people, nickname); //remove the current user from the people 
+          if(users[nickname].owns !== existRoom.id) 
+            broadcast(existRoom.id, nickname + ' left the room.\n\r',nickname); //send status message to all members
         }
           
-        users[nickname].inroom = null;
+        users[nickname].inroom = null; //set inroom to null since he left the room
       }
   }
 
   }
+  //allows the user to leave the application -- takes care of freeing resources
   function quit(nickname){
     count--;
     users[nickname].port.write(" BYE\n\r");
     
-    if(users[nickname].inroom!==null){
+    if(users[nickname].inroom!==null){ //if he was a part of a chat room, update members
       var existRoom = _.findWhere(rooms, {'id': users[nickname].inroom});
       if(existRoom!==null){
         existRoom.people = _.without(existRoom.people, nickname);
@@ -276,7 +285,7 @@ var server = net.createServer(function (conn) {
           broadcast(existRoom.id, nickname + ' left the room\n\r',nickname);
       }
     }
-    if(users[nickname].owns!==null){
+    if(users[nickname].owns!==null){ //If the user owned any chatroom, delete the room and inform members
       var curr_room = _.findWhere(rooms, {'id': users[nickname].owns});
       broadcast(curr_room.id, nickname + ' left the server. The room is removed and you have been disconnected from it as well.\n\r',nickname);
       for (var i=0; i<curr_room.people.length; i++) {
@@ -284,16 +293,19 @@ var server = net.createServer(function (conn) {
       }
       delete rooms[curr_room.id];
     }
-    conn.destroy();
-    delete users[nickname];
+    conn.destroy();  //destroy the socket
+    delete users[nickname]; //remove the user from list of online users
     
     
   }
+  //error handler
   conn.on('error', function(err) {
         console.log(err);
   }); 
+  //close the socket
   conn.on('close', function () {
     count--;
+    //if not removed earlier, dispose users object
     if(users[nickname]!=undefined){
        users[nickname].port.write(" BYE");
     broadcast(users[nickname].inroom, nickname + ' left the room\n\r',nickname);
