@@ -21,17 +21,14 @@
         <script src="http://localhost:8000/socket.io/socket.io.js"></script>
 <script>
 var connection;
-//var socket = new io.Socket("localhost", {port: 8000});
-var socket = io.connect("http://localhost:8000");
+var socket = io.connect("http://localhost:8000"); //socket conection to the browser
 window.addEventListener("load", function () {
    var nickname;
-    
-    
-        
-    socket.on('httpServer', function (data) {
-        //var ab = prompt(firstWord(data));
-        if(firstWord(data)==='welcome'||firstWord(data)!=='Sorry'){
-            console.log(data);
+    socket.on('httpServer', function (data) { 
+        // validate the response from the server
+        if(firstWord(data)==='welcome'||firstWord(data)!=='Sorry'){ 
+            //console.log(data);
+            //create a new div for the new message
             var div = document.createElement("div");
             div.style["white-space"] = "pre";
             //var span = document.createElement("span");
@@ -41,13 +38,13 @@ window.addEventListener("load", function () {
             objDiv.appendChild(div);
             objDiv.scrollTop = objDiv.scrollHeight;
         }
+        //if new user, get username
     if (!nickname) {
         nickname = promtFunc();
         socket.emit('tcp', nickname);
         return;
     }   
-        console.log("first:"+firstWord(data));
-        console.log("data:"+ data);
+      //if already registered user
           if(firstWord(data)==='Sorry'){
                 //prompt(data);
                     nickname = promtFunc();
@@ -94,7 +91,7 @@ window.addEventListener("load", function () {
     console.log("firstWord:"+f[2]);
     return f[2];
   }
-
+//prompt for a nickname
  var promtFunc = function(){
         return prompt("Choose a nickname");
 }
