@@ -31,9 +31,7 @@ window.addEventListener("load", function () {
             //create a new div for the new message
             var div = document.createElement("div");
             div.style["white-space"] = "pre";
-            //var span = document.createElement("span");
             div.innerHTML = data.replace(/\\n\\r/g,'<br />');
-            //div.appendChild(span);
             var objDiv = document.getElementById("content");
             objDiv.appendChild(div);
             objDiv.scrollTop = objDiv.scrollHeight;
@@ -46,7 +44,6 @@ window.addEventListener("load", function () {
     }   
       //if already registered user
           if(firstWord(data)==='Sorry'){
-                //prompt(data);
                     nickname = promtFunc();
                     if (nickname) {
                         socket.emit('tcp', nickname);
@@ -57,29 +54,17 @@ window.addEventListener("load", function () {
           });   
         
 
-        /*  console.log("Connection opened")
-            connection.send(nickname)*/
+        
             document.getElementById("form").onsubmit = function (event) {
                 var msg = document.getElementById("msg")
                 if (msg.value)
                     socket.emit('tcp', msg.value);
-                    //connection.send(msg.value)
+                   
                 msg.value = ""
                 event.preventDefault()
             }   
         
-        /*connection.onclose = function () {
-            console.log("Connection closed")
-        }
-        connection.onerror = function () {
-            console.error("Connection error")
-        }
-        connection.onmessage = function (event) {
-            var div = document.createElement("div")
-            div.textContent = event.data
-            document.body.appendChild(div)
-        }
-    }*/
+       
 });
 
 // To find the first word from a sentence
